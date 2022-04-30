@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::entrypoint::ProgramResult;
 
-declare_id!("FcbVJNC1gKPAEFVCXrD4uULYP8vsAhfADyXUir9yGqru");
+declare_id!("58E4eXJEuNtQQmwgFeAPdsbVsPutZNCbiPs78QJvPdJE");
 
 #[program]
 pub mod gifportal {
@@ -23,6 +23,20 @@ pub mod gifportal {
         base_account.gif_list.push(item);
         base_account.total_gifs += 1;
         Ok(())
+    }
+    pub fn send_sol(ctx: Context<SendSol>, amount: u64) -> ProgramResult {
+        let ix = anchor_lang::solana_program::system_instruction::transfer(
+            &ctx.accounts.from.key(),
+            &ctx.accounts.to.key(),
+            amount,
+        );
+        anchor_lang::solana_program::program::invoke(
+            &ix,
+            &[
+                ctx.accounts.from.to_account_info(),
+                ctx.accounts.to.to_account_info(),
+            ],
+        )
     }
 }
 
@@ -53,4 +67,13 @@ pub struct ItemStruct {
 pub struct BaseAccount {
     pub total_gifs: u64,
     pub gif_list: Vec<ItemStruct>
+}
+
+#[derive(Accounts)]
+pub struct SendSol<'info> {
+    #[account(mut)]
+    from: Signer<'info>,
+    #[account(mut)]
+    to: AccountInfo<'info>,
+    system_program: Program<'info, System>,
 }
